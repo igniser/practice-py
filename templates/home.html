@@ -1,0 +1,12 @@
+<html>
+    <head>
+        <title>Practice-Py</title>
+    </head>
+    <body>
+        {% if current_user.is_authenticated %}
+        Hi {{ current_user.name }}!
+        {% else %}
+        <a class="button" href="/login">Google Login</a>
+        {% endif %}
+    </body>
+</html>
