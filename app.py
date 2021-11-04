@@ -18,8 +18,13 @@ from oauthlib.oauth2 import WebApplicationClient
 import requests
 
 # Internal imports
-from db import init_db_command
-from user import User
+# from db import init_db_command
+# from user import User
+from db_postgre import pg_init_db
+from user_postgre import UserPostgre
+
+# uncomment the following line if needed to create db in postgre
+# pg_init_db()
 
 # Configuration
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
@@ -38,8 +43,9 @@ login_manager.init_app(app)
 
 # Naive database setup
 try:
-    print(" call init_db_command() ")
-    init_db_command()
+    # init_db_command()
+    # placeholder
+    db_local_used = 0
 except sqlite3.OperationalError:
     # Assume it's already been created
     pass
@@ -51,11 +57,13 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 # Flask-Login helper to retrieve a user from our db
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get(user_id)
+    return UserPostgre.get(user_id)
+
 
 @app.route("/")
 def index():
     return flask.render_template('home.html')
+
 
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
@@ -127,13 +135,13 @@ def callback():
 
     # Create a user in your db with the information provided
     # by Google
-    user = User(
+    user = UserPostgre(
         id_=unique_id, name=users_name, email=users_email, profile_pic=picture
     )
 
     # Doesn't exist? Add it to the database.
-    if not User.get(unique_id):
-        User.create(unique_id, users_name, users_email, picture)
+    if not UserPostgre.get(unique_id):
+        UserPostgre.create(unique_id, users_name, users_email, picture)
 
     # Begin user session by logging the user in
     login_user(user)
